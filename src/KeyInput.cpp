@@ -1,26 +1,43 @@
-#include "KeyInput.hpp"
+#include <KeyInputLib/KeyInput.hpp>
 
 #include <cerrno>
 #include <cstring>
 #include <fcntl.h>
 #include <linux/input.h>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <unistd.h>
 
 KeyInput::KeyInput()
     : fd(-1),
+      openedDevice(std::nullopt),
       currentKeyStates(KEY_MAX, false),
       previousKeyStates(KEY_MAX, false)
 {
 }
 
-KeyInput::KeyInput(const std::string& devicePath)
+KeyInput::KeyInput(const DeviceInfo& deviceInfo)
     : fd(-1),
+      openedDevice(std::nullopt),
       currentKeyStates(KEY_MAX, false),
       previousKeyStates(KEY_MAX, false)
 {
-    // 生成時にすぐ利用したいケース向けに、指定パスをそのまま開きます。
+    // 生成時にすぐ利用したいケース向けに、指定デバイスをそのまま開きます。
+    if (OpenDevice(deviceInfo) == false)
+    {
+        throw std::runtime_error(
+            "デバイスオープン失敗: " + deviceInfo.devicePath + " : " + std::strerror(errno));
+    }
+}
+
+KeyInput::KeyInput(const std::string& devicePath)
+    : fd(-1),
+      openedDevice(std::nullopt),
+      currentKeyStates(KEY_MAX, false),
+      previousKeyStates(KEY_MAX, false)
+{
+    // パスのみ指定された場合は、表示名にパスをそのまま入れて保持します。
     if (OpenDevice(devicePath) == false)
     {
         throw std::runtime_error(
@@ -35,11 +52,13 @@ KeyInput::~KeyInput()
 
 KeyInput::KeyInput(KeyInput&& other) noexcept
     : fd(other.fd),
+      openedDevice(std::move(other.openedDevice)),
       currentKeyStates(std::move(other.currentKeyStates)),
       previousKeyStates(std::move(other.previousKeyStates))
 {
-    // ムーブ元はデバイス未保持状態に戻します。
+    // ムーブ元は未保持状態に戻します。
     other.fd = -1;
+    other.openedDevice = std::nullopt;
 }
 
 KeyInput& KeyInput::operator=(KeyInput&& other) noexcept
@@ -53,21 +72,42 @@ KeyInput& KeyInput::operator=(KeyInput&& other) noexcept
     CloseDevice();
 
     fd = other.fd;
+    openedDevice = std::move(other.openedDevice);
     currentKeyStates = std::move(other.currentKeyStates);
     previousKeyStates = std::move(other.previousKeyStates);
 
     other.fd = -1;
+    other.openedDevice = std::nullopt;
 
     return *this;
 }
 
-bool KeyInput::OpenDevice(const std::string& devicePath)
+bool KeyInput::OpenDevice(const DeviceInfo& deviceInfo)
 {
     // 既に別デバイスを開いている場合に備えて、先に閉じてから開き直します。
     CloseDevice();
 
-    fd = open(devicePath.c_str(), O_RDONLY | O_NONBLOCK);
-    return fd >= 0;
+    fd = open(deviceInfo.devicePath.c_str(), O_RDONLY | O_NONBLOCK);
+    if (fd < 0)
+    {
+        return false;
+    }
+
+    openedDevice = deviceInfo;
+
+    // 新しいデバイスに切り替わるため、前回までの状態は初期化します。
+    ClearKeyStates();
+
+    return true;
+}
+
+bool KeyInput::OpenDevice(const std::string& devicePath)
+{
+    DeviceInfo deviceInfo;
+    deviceInfo.displayName = devicePath;
+    deviceInfo.devicePath = devicePath;
+
+    return OpenDevice(deviceInfo);
 }
 
 void KeyInput::CloseDevice()
@@ -77,6 +117,17 @@ void KeyInput::CloseDevice()
         close(fd);
         fd = -1;
     }
+
+    openedDevice = std::nullopt;
+
+    // デバイス未接続状態に合わせてキー状態も初期化します。
+    ClearKeyStates();
+}
+
+void KeyInput::ClearKeyStates()
+{
+    currentKeyStates.assign(KEY_MAX, false);
+    previousKeyStates.assign(KEY_MAX, false);
 }
 
 void KeyInput::Update()
@@ -114,6 +165,61 @@ bool KeyInput::IsOpen() const
     return fd >= 0;
 }
 
+bool KeyInput::HasOpenedDevice() const
+{
+    return openedDevice.has_value();
+}
+
+const std::optional<DeviceInfo>& KeyInput::GetOpenedDevice() const
+{
+    return openedDevice;
+}
+
+std::string KeyInput::GetOpenedDeviceName() const
+{
+    if (openedDevice.has_value() == false)
+    {
+        return "";
+    }
+
+    return openedDevice->displayName;
+}
+
+std::string KeyInput::GetOpenedDevicePath() const
+{
+    if (openedDevice.has_value() == false)
+    {
+        return "";
+    }
+
+    return openedDevice->devicePath;
+}
+
+std::string KeyInput::GetOpenedDeviceDisplayText() const
+{
+    if (openedDevice.has_value() == false)
+    {
+        return "";
+    }
+
+    if (openedDevice->displayName.empty() == true)
+    {
+        return openedDevice->devicePath;
+    }
+
+    return openedDevice->displayName + " -> " + openedDevice->devicePath;
+}
+
+bool KeyInput::IsOpenedDevice(const std::string& devicePath) const
+{
+    if (openedDevice.has_value() == false)
+    {
+        return false;
+    }
+
+    return openedDevice->devicePath == devicePath;
+}
+
 bool KeyInput::IsKeyPressed(int keycode) const
 {
     if (IsValidKeyCode(keycode) == false)
@@ -131,7 +237,6 @@ bool KeyInput::WasKeyPressed(int keycode) const
         return false;
     }
 
-    // 前回は押されておらず、今回押されていれば押下開始です。
     if (previousKeyStates[keycode] == false && currentKeyStates[keycode] == true)
     {
         return true;
@@ -147,7 +252,6 @@ bool KeyInput::WasKeyReleased(int keycode) const
         return false;
     }
 
-    // 前回は押されていて、今回離されていれば解放です。
     if (previousKeyStates[keycode] == true && currentKeyStates[keycode] == false)
     {
         return true;

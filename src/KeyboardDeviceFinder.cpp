@@ -1,10 +1,9 @@
-#include "KeyboardDeviceFinder.hpp"
+#include <KeyInputLib/KeyboardDeviceFinder.hpp>
 
 #include <algorithm>
 #include <cctype>
 #include <filesystem>
 #include <string>
-#include <utility>
 #include <vector>
 
 namespace fs = std::filesystem;
@@ -40,12 +39,12 @@ namespace
     }
 
     /// /dev/input/by-id/ を列挙し、条件に合うデバイス一覧を返します。
-    std::vector<std::pair<std::string, std::string>> EnumerateDevices(bool keyboardOnly)
+    std::vector<DeviceInfo> EnumerateDevices(bool keyboardOnly)
     {
-        std::vector<std::pair<std::string, std::string>> devices;
+        std::vector<DeviceInfo> devices;
         const fs::path inputByIdPath = "/dev/input/by-id/";
 
-        // 入力デバイスのシンボリックリンク置き場が無い環境では空で返します。
+        // 入力デバイス一覧が存在しない環境では空で返します。
         if (fs::exists(inputByIdPath) == false)
         {
             return devices;
@@ -68,9 +67,11 @@ namespace
 
             try
             {
-                // by-id はシンボリックリンクなので、実体パスへ解決して保持します。
-                const std::string realPath = fs::canonical(entry.path()).string();
-                devices.emplace_back(fileName, realPath);
+                DeviceInfo deviceInfo;
+                deviceInfo.displayName = fileName;
+                deviceInfo.devicePath = fs::canonical(entry.path()).string();
+
+                devices.push_back(deviceInfo);
             }
             catch (const fs::filesystem_error&)
             {
@@ -82,12 +83,12 @@ namespace
     }
 }
 
-std::vector<std::pair<std::string, std::string>> KeyboardDeviceFinder::FindKeyboardDevices()
+std::vector<DeviceInfo> KeyboardDeviceFinder::FindKeyboardDevices()
 {
     return EnumerateDevices(true);
 }
 
-std::vector<std::pair<std::string, std::string>> KeyboardDeviceFinder::FindAllInputDevices()
+std::vector<DeviceInfo> KeyboardDeviceFinder::FindAllInputDevices()
 {
     return EnumerateDevices(false);
 }

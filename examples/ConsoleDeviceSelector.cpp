@@ -1,11 +1,10 @@
-#include "KeyboardDeviceSelector.hpp"
+#include "ConsoleDeviceSelector.hpp"
 
 #include <iostream>
 #include <limits>
-#include <utility>
 #include <vector>
 
-int KeyboardDeviceSelector::SelectDeviceIndex(const std::vector<std::pair<std::string, std::string>>& devices)
+int ConsoleDeviceSelector::SelectDeviceIndex(const std::vector<DeviceInfo>& devices)
 {
     if (devices.empty())
     {
@@ -17,7 +16,12 @@ int KeyboardDeviceSelector::SelectDeviceIndex(const std::vector<std::pair<std::s
 
     for (size_t index = 0; index < devices.size(); ++index)
     {
-        std::cout << index << ": " << devices[index].first << " -> " << devices[index].second << "\n";
+        std::cout << index
+                  << ": "
+                  << devices[index].displayName
+                  << " -> "
+                  << devices[index].devicePath
+                  << "\n";
     }
 
     int selectedIndex = -1;

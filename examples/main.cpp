@@ -1,59 +1,59 @@
-#include "KeyInput.hpp"
-#include "KeyboardDeviceFinder.hpp"
-#include "KeyboardDeviceSelector.hpp"
+#include "ConsoleDeviceSelector.hpp"
+
+#include <KeyInputLib/DeviceInfo.hpp>
+#include <KeyInputLib/KeyInput.hpp>
+#include <KeyInputLib/KeyboardDeviceFinder.hpp>
 
 #include <chrono>
 #include <iostream>
 #include <linux/input.h>
+#include <optional>
 #include <thread>
-#include <utility>
 #include <vector>
 
 namespace
 {
-    /// 使用するキーボードデバイスの実体パスを決定します。
-    std::string ResolveKeyboardDevicePath()
+    /// 使用するキーボードデバイス情報を決定します。
+    std::optional<DeviceInfo> ResolveKeyboardDevice()
     {
-        std::vector<std::pair<std::string, std::string>> keyboardDevices =
-            KeyboardDeviceFinder::FindKeyboardDevices();
+        std::vector<DeviceInfo> keyboardDevices = KeyboardDeviceFinder::FindKeyboardDevices();
 
         if (keyboardDevices.empty() == false)
         {
-            // キーボード候補が 1 件なら自動採用します。
+            // キーボード候補が1件なら自動採用します。
             if (keyboardDevices.size() == 1)
             {
                 std::cout << "キーボードを自動検出しました: "
-                          << keyboardDevices[0].first
+                          << keyboardDevices[0].displayName
                           << " -> "
-                          << keyboardDevices[0].second
+                          << keyboardDevices[0].devicePath
                           << "\n";
 
-                return keyboardDevices[0].second;
+                return keyboardDevices[0];
             }
 
-            // 複数ある場合は利用者に選んでもらいます。
-            const int selectedIndex = KeyboardDeviceSelector::SelectDeviceIndex(keyboardDevices);
+            // 複数ある場合はサンプルアプリ側のコンソールUIで選択します。
+            const int selectedIndex = ConsoleDeviceSelector::SelectDeviceIndex(keyboardDevices);
             if (selectedIndex >= 0)
             {
-                return keyboardDevices[selectedIndex].second;
+                return keyboardDevices[selectedIndex];
             }
 
-            return "";
+            return std::nullopt;
         }
 
         // キーボード候補が判別できない場合は全入力デバイスから選ばせます。
         std::cout << "キーボード候補が見つからなかったため、入力デバイス全体から選択します。\n";
 
-        std::vector<std::pair<std::string, std::string>> allDevices =
-            KeyboardDeviceFinder::FindAllInputDevices();
+        std::vector<DeviceInfo> allDevices = KeyboardDeviceFinder::FindAllInputDevices();
 
-        const int selectedIndex = KeyboardDeviceSelector::SelectDeviceIndex(allDevices);
+        const int selectedIndex = ConsoleDeviceSelector::SelectDeviceIndex(allDevices);
         if (selectedIndex >= 0)
         {
-            return allDevices[selectedIndex].second;
+            return allDevices[selectedIndex];
         }
 
-        return "";
+        return std::nullopt;
     }
 }
 
@@ -61,15 +61,22 @@ int main()
 {
     try
     {
-        const std::string devicePath = ResolveKeyboardDevicePath();
+        const std::optional<DeviceInfo> selectedDevice = ResolveKeyboardDevice();
 
-        if (devicePath.empty() == true)
+        if (selectedDevice.has_value() == false)
         {
             std::cerr << "使用するデバイスを決定できませんでした。\n";
             return 1;
         }
 
-        KeyInput keyInput(devicePath);
+        KeyInput keyInput(selectedDevice.value());
+
+        if (keyInput.HasOpenedDevice() == true)
+        {
+            std::cout << "使用中デバイス: "
+                    << keyInput.GetOpenedDeviceDisplayText()
+                    << "\n";
+        }
 
         std::cout << "ESC キーで終了します。\n";
 
@@ -78,19 +85,16 @@ int main()
             // 現在までに届いている入力イベントを取り込みます。
             keyInput.Update();
 
-            // 押した瞬間だけ反応したい場合は WasKeyPressed を使います。
             if (keyInput.WasKeyPressed(KEY_A) == true)
             {
                 std::cout << "Aキーが押されました\n";
             }
 
-            // 離した瞬間だけ反応したい場合は WasKeyReleased を使います。
             if (keyInput.WasKeyReleased(KEY_A) == true)
             {
                 std::cout << "Aキーが離されました\n";
             }
 
-            // 押している間ずっと判定したい場合は IsKeyPressed を使います。
             if (keyInput.IsKeyPressed(KEY_LEFTSHIFT) == true)
             {
                 std::cout << "Shift押下中\n";
