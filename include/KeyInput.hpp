@@ -71,6 +71,9 @@ public:
     /// 指定パスのデバイスを現在開いているかを返します。
     bool IsOpenedDevice(const std::string& devicePath) const;
 
+    /// 指定デバイス情報のデバイスを現在開いているかを返します。
+    bool IsOpenedDevice(const DeviceInfo& deviceInfo) const;
+
     /// 現在そのキーが押下中かを返します。
     bool IsKeyPressed(int keycode) const;
 

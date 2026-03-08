@@ -141,7 +141,6 @@ int main()
 
 ## 今後の改善案
 
-- `IsOpenedDevice(const DeviceInfo&)` の追加
 - イベントキュー方式の API
 - 複数デバイスの同時監視対応
 - 共有ライブラリ（.so）のビルドオプション

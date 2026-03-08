@@ -220,6 +220,16 @@ bool KeyInput::IsOpenedDevice(const std::string& devicePath) const
     return openedDevice->devicePath == devicePath;
 }
 
+bool KeyInput::IsOpenedDevice(const DeviceInfo& deviceInfo) const
+{
+    if (openedDevice.has_value() == false)
+    {
+        return false;
+    }
+
+    return openedDevice->devicePath == deviceInfo.devicePath;
+}
+
 bool KeyInput::IsKeyPressed(int keycode) const
 {
     if (IsValidKeyCode(keycode) == false)
