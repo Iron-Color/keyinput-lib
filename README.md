@@ -17,27 +17,6 @@ Linux / Raspberry Pi 環境で `input event` デバイスを読み取り、
 - `examples/` にコンソール用のサンプルアプリを同梱
 - CMake によるビルド / install / `find_package` に対応
 
-## Supported Environment
-
-# KeyInputLib
-
-軽量な C++17 ライブラリで、Linux（主に Raspberry Pi）上の `input event` デバイスからキーボード入力を取得・管理します。
-
-主な用途: /dev/input/by-id/ にある候補からキーボードを選択し、キーの押下状態や押した／離した瞬間を扱うユーティリティを提供します。
-
----
-
-## 特長
-
-- Linux の `input event` デバイスに対応
-- `/dev/input/by-id/` からキーボード候補を列挙
-- `DeviceInfo` で表示名と実体パスを管理
-- 押下中（pressing）、押した瞬間（pressed）、離した瞬間（released）の判定が可能
-- 現在開いているデバイス情報の取得、状態リセットに対応
-- CMake によるビルド / install / `find_package` に対応
-
----
-
 ## 動作環境
 
 - Linux（Raspberry Pi を想定）
