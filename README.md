@@ -150,7 +150,7 @@ int main()
 
 ## ライセンス
 
-MIT License（詳細は [License](License#L1) を参照）
+MIT License（詳細は [License](License) を参照）
 
 ---
 
