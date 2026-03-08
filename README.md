@@ -6,7 +6,7 @@ Linux / Raspberry Pi 環境で `input event` デバイスを読み取り、
 `/dev/input/by-id/` からキーボード候補を列挙し、選択したデバイスのキー入力を取得できます。  
 現在は Linux の `input_event` を利用しており、主に Raspberry Pi 上での利用を想定しています。
 
-## Features
+## 特徴
 
 - Linux の `input event` デバイスに対応
 - `/dev/input/by-id/` からキーボード候補を列挙可能
