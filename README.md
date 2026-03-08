@@ -11,7 +11,7 @@ Linux / Raspberry Pi 環境で `input event` デバイスを読み取り、
 - Linux の `input event` デバイスに対応
 - `/dev/input/by-id/` からキーボード候補を列挙可能
 - `DeviceInfo` で表示名と実体パスを一括管理
-- 押下中 / 押した瞬間 / 離した瞬間 を判定可能
+- 特定の key 押下 を判定可能
 - 現在開いているデバイス情報を取得可能
 - `ClearKeyStates()` による状態リセットに対応
 - `examples/` にコンソール用のサンプルアプリを同梱
