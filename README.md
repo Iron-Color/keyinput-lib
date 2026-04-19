@@ -67,9 +67,7 @@ sudo make install
 デバイスを列挙して最初の候補を開き、ループで状態を更新する例です。
 
 ```cpp
-#include <KeyInputLib/DeviceInfo.hpp>
-#include <KeyInputLib/KeyInput.hpp>
-#include <KeyInputLib/KeyboardDeviceFinder.hpp>
+#include <KeyInputLib/KeyInputLib.hpp>
 
 #include <chrono>
 #include <iostream>
@@ -96,11 +94,12 @@ int main()
 
 ## 公開 API（概要）
 
-- `DeviceInfo` — デバイスの表示名と実体パスを保持（[include/DeviceInfo.hpp](include/DeviceInfo.hpp#L1)）
-- `KeyboardDeviceFinder` — 入力デバイス列挙用ユーティリティ（[include/KeyboardDeviceFinder.hpp](include/KeyboardDeviceFinder.hpp#L1)）
-- `KeyInput` — 指定デバイスを開いてキー状態を管理（[include/KeyInput.hpp](include/KeyInput.hpp#L1)）
+- `DeviceInfo` — デバイスの表示名と実体パスを保持（[KeyInputLib/DeviceInfo.hpp](KeyInputLib/DeviceInfo.hpp)）
+- `KeyboardDeviceFinder` — 入力デバイス列挙用の namespace（[KeyInputLib/KeyboardDeviceFinder.hpp](KeyInputLib/KeyboardDeviceFinder.hpp)）
+- `KeyInput` — 指定デバイスを開いてキー状態を管理（[KeyInputLib/KeyInput.hpp](KeyInputLib/KeyInput.hpp)）
+- まとめてインクルードしたい場合は `KeyInputLib/KeyInputLib.hpp` を使用できます。
 
-各クラスの主なメソッドはソース内のヘッダを参照してください。
+各 API の詳細はヘッダのコメントを参照してください。
 
 ---
 
