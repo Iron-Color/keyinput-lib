@@ -1,6 +1,6 @@
 #pragma once
 
-#include <KeyInputLib/DeviceInfo.hpp>
+#include <KeyInputLib/KeyInputLib.hpp>
 
 #include <vector>
 

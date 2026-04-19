@@ -4,13 +4,12 @@
 
 #include <vector>
 
-/// キーボード候補デバイスや入力デバイスを列挙するクラスです。
-class KeyboardDeviceFinder
+/// キーボード候補デバイスや入力デバイスを列挙するユーティリティです。
+namespace KeyboardDeviceFinder
 {
-public:
     /// /dev/input/by-id/ からキーボードらしいデバイスを列挙します。
-    static std::vector<DeviceInfo> FindKeyboardDevices();
+    std::vector<DeviceInfo> FindKeyboardDevices();
 
     /// /dev/input/by-id/ 配下の入力デバイスをすべて列挙します。
-    static std::vector<DeviceInfo> FindAllInputDevices();
-};
+    std::vector<DeviceInfo> FindAllInputDevices();
+}

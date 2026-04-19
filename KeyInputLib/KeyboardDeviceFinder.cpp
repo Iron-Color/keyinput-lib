@@ -45,12 +45,12 @@ namespace
         const fs::path inputByIdPath = "/dev/input/by-id/";
 
         // 入力デバイス一覧が存在しない環境では空で返します。
-        if (fs::exists(inputByIdPath) == false)
+        if (!fs::exists(inputByIdPath))
         {
             return devices;
         }
 
-        if (fs::is_directory(inputByIdPath) == false)
+        if (!fs::is_directory(inputByIdPath))
         {
             return devices;
         }
@@ -60,7 +60,7 @@ namespace
             const std::string fileName = entry.path().filename().string();
 
             // キーボードのみ欲しい場合は候補外を除外します。
-            if (keyboardOnly == true && ContainsKeyboardKeyword(fileName) == false)
+            if (keyboardOnly && !ContainsKeyboardKeyword(fileName))
             {
                 continue;
             }
@@ -83,12 +83,15 @@ namespace
     }
 }
 
-std::vector<DeviceInfo> KeyboardDeviceFinder::FindKeyboardDevices()
+namespace KeyboardDeviceFinder
 {
-    return EnumerateDevices(true);
-}
+    std::vector<DeviceInfo> FindKeyboardDevices()
+    {
+        return EnumerateDevices(true);
+    }
 
-std::vector<DeviceInfo> KeyboardDeviceFinder::FindAllInputDevices()
-{
-    return EnumerateDevices(false);
+    std::vector<DeviceInfo> FindAllInputDevices()
+    {
+        return EnumerateDevices(false);
+    }
 }

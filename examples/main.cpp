@@ -1,8 +1,6 @@
 #include "ConsoleDeviceSelector.hpp"
 
-#include <KeyInputLib/DeviceInfo.hpp>
-#include <KeyInputLib/KeyInput.hpp>
-#include <KeyInputLib/KeyboardDeviceFinder.hpp>
+#include <KeyInputLib/KeyInputLib.hpp>
 
 #include <chrono>
 #include <iostream>
@@ -18,7 +16,7 @@ namespace
     {
         std::vector<DeviceInfo> keyboardDevices = KeyboardDeviceFinder::FindKeyboardDevices();
 
-        if (keyboardDevices.empty() == false)
+        if (!keyboardDevices.empty())
         {
             // キーボード候補が1件なら自動採用します。
             if (keyboardDevices.size() == 1)
@@ -63,7 +61,7 @@ int main()
     {
         const std::optional<DeviceInfo> selectedDevice = ResolveKeyboardDevice();
 
-        if (selectedDevice.has_value() == false)
+        if (!selectedDevice)
         {
             std::cerr << "使用するデバイスを決定できませんでした。\n";
             return 1;
@@ -71,7 +69,7 @@ int main()
 
         KeyInput keyInput(selectedDevice.value());
 
-        if (keyInput.HasOpenedDevice() == true)
+        if (keyInput.HasOpenedDevice())
         {
             std::cout << "使用中デバイス: "
                     << keyInput.GetOpenedDeviceDisplayText()
@@ -85,22 +83,22 @@ int main()
             // 現在までに届いている入力イベントを取り込みます。
             keyInput.Update();
 
-            if (keyInput.WasKeyPressed(KEY_A) == true)
+            if (keyInput.WasKeyPressed(KEY_A))
             {
                 std::cout << "Aキーが押されました\n";
             }
 
-            if (keyInput.WasKeyReleased(KEY_A) == true)
+            if (keyInput.WasKeyReleased(KEY_A))
             {
                 std::cout << "Aキーが離されました\n";
             }
 
-            if (keyInput.IsKeyPressed(KEY_LEFTSHIFT) == true)
+            if (keyInput.IsKeyPressed(KEY_LEFTSHIFT))
             {
                 std::cout << "Shift押下中\n";
             }
 
-            if (keyInput.WasKeyPressed(KEY_ESC) == true)
+            if (keyInput.WasKeyPressed(KEY_ESC))
             {
                 std::cout << "終了します。\n";
                 break;

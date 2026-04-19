@@ -24,7 +24,7 @@ KeyInput::KeyInput(const DeviceInfo& deviceInfo)
       previousKeyStates(KEY_MAX, false)
 {
     // 生成時にすぐ利用したいケース向けに、指定デバイスをそのまま開きます。
-    if (OpenDevice(deviceInfo) == false)
+    if (!OpenDevice(deviceInfo))
     {
         throw std::runtime_error(
             "デバイスオープン失敗: " + deviceInfo.devicePath + " : " + std::strerror(errno));
@@ -38,7 +38,7 @@ KeyInput::KeyInput(const std::string& devicePath)
       previousKeyStates(KEY_MAX, false)
 {
     // パスのみ指定された場合は、表示名にパスをそのまま入れて保持します。
-    if (OpenDevice(devicePath) == false)
+    if (!OpenDevice(devicePath))
     {
         throw std::runtime_error(
             "デバイスオープン失敗: " + devicePath + " : " + std::strerror(errno));
@@ -177,7 +177,7 @@ const std::optional<DeviceInfo>& KeyInput::GetOpenedDevice() const
 
 std::string KeyInput::GetOpenedDeviceName() const
 {
-    if (openedDevice.has_value() == false)
+    if (!openedDevice)
     {
         return "";
     }
@@ -187,7 +187,7 @@ std::string KeyInput::GetOpenedDeviceName() const
 
 std::string KeyInput::GetOpenedDevicePath() const
 {
-    if (openedDevice.has_value() == false)
+    if (!openedDevice)
     {
         return "";
     }
@@ -197,12 +197,12 @@ std::string KeyInput::GetOpenedDevicePath() const
 
 std::string KeyInput::GetOpenedDeviceDisplayText() const
 {
-    if (openedDevice.has_value() == false)
+    if (!openedDevice)
     {
         return "";
     }
 
-    if (openedDevice->displayName.empty() == true)
+    if (openedDevice->displayName.empty())
     {
         return openedDevice->devicePath;
     }
@@ -212,7 +212,7 @@ std::string KeyInput::GetOpenedDeviceDisplayText() const
 
 bool KeyInput::IsOpenedDevice(const std::string& devicePath) const
 {
-    if (openedDevice.has_value() == false)
+    if (!openedDevice)
     {
         return false;
     }
@@ -222,7 +222,7 @@ bool KeyInput::IsOpenedDevice(const std::string& devicePath) const
 
 bool KeyInput::IsOpenedDevice(const DeviceInfo& deviceInfo) const
 {
-    if (openedDevice.has_value() == false)
+    if (!openedDevice)
     {
         return false;
     }
@@ -232,7 +232,7 @@ bool KeyInput::IsOpenedDevice(const DeviceInfo& deviceInfo) const
 
 bool KeyInput::IsKeyPressed(int keycode) const
 {
-    if (IsValidKeyCode(keycode) == false)
+    if (!IsValidKeyCode(keycode))
     {
         return false;
     }
@@ -242,45 +242,25 @@ bool KeyInput::IsKeyPressed(int keycode) const
 
 bool KeyInput::WasKeyPressed(int keycode) const
 {
-    if (IsValidKeyCode(keycode) == false)
+    if (!IsValidKeyCode(keycode))
     {
         return false;
     }
 
-    if (previousKeyStates[keycode] == false && currentKeyStates[keycode] == true)
-    {
-        return true;
-    }
-
-    return false;
+    return !previousKeyStates[keycode] && currentKeyStates[keycode];
 }
 
 bool KeyInput::WasKeyReleased(int keycode) const
 {
-    if (IsValidKeyCode(keycode) == false)
+    if (!IsValidKeyCode(keycode))
     {
         return false;
     }
 
-    if (previousKeyStates[keycode] == true && currentKeyStates[keycode] == false)
-    {
-        return true;
-    }
-
-    return false;
+    return previousKeyStates[keycode] && !currentKeyStates[keycode];
 }
 
 bool KeyInput::IsValidKeyCode(int keycode) const
 {
-    if (keycode < 0)
-    {
-        return false;
-    }
-
-    if (keycode >= static_cast<int>(currentKeyStates.size()))
-    {
-        return false;
-    }
-
-    return true;
+    return keycode >= 0 && keycode < static_cast<int>(currentKeyStates.size());
 }

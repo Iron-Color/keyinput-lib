@@ -32,7 +32,7 @@ int ConsoleDeviceSelector::SelectDeviceIndex(const std::vector<DeviceInfo>& devi
         std::cin >> selectedIndex;
 
         // 数値以外が入力された場合は入力状態を回復して再試行します。
-        if (std::cin.fail() == true)
+        if (std::cin.fail())
         {
             std::cin.clear();
             std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');

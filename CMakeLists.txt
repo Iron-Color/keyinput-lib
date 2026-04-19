@@ -4,19 +4,16 @@ project(KeyInputLib VERSION 1.0.0 LANGUAGES CXX)
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
 add_library(keyinput STATIC
-    src/KeyInput.cpp
-    src/KeyboardDeviceFinder.cpp
+    KeyInputLib/KeyInput.cpp
+    KeyInputLib/KeyboardDeviceFinder.cpp
 )
 
 add_library(KeyInputLib::keyinput ALIAS keyinput)
 
 target_include_directories(keyinput
     PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
@@ -46,8 +43,9 @@ install(
 )
 
 install(
-    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/KeyInputLib/
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/KeyInputLib
+    FILES_MATCHING PATTERN "*.hpp"
 )
 
 install(
